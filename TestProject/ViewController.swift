@@ -20,6 +20,7 @@ class ViewController: UIViewController {
     private let dataProvider = GoogleDataProvider()
     private let searchRadius: Double = 1000
     var geocoder = CLGeocoder()
+    let endLatLon = CLLocationCoordinate2DMake(10.8, 90.1);
     
     //This is the cafe button/items
     @IBOutlet weak var cafe: UIView!
@@ -73,10 +74,12 @@ class ViewController: UIViewController {
         bottomView.layer.shadowRadius = 4
         
         startField.placeholder = "Current Location"
+        startField.text = "201 E 2nd Street, New York, NY, 10009"
         startField.layer.borderColor = mygrey.cgColor
         startField.layer.cornerRadius = 5.0
         startField.layer.borderWidth = 2
         endField.placeholder = "Where are you going?"
+        endField.text = "180 Orchard Street, New York, NY, 10002"
         endField.layer.borderColor = mygrey.cgColor
         endField.layer.cornerRadius = 5.0
         endField.layer.borderWidth = 2
@@ -111,6 +114,7 @@ class ViewController: UIViewController {
         restaurantOff()
     }
     
+    
     @IBAction func onGo(_ sender: Any) {
 
         NSLog("1")
@@ -119,7 +123,7 @@ class ViewController: UIViewController {
         //var coordinate1a: Double = 0;
         //var coordinate2a: Double = 0;
         //var coordinate2b: Double = 0;
-        let geocoder = CLGeocoder()
+        //let geocoder = CLGeocoder()
          NSLog("2")
         NSLog(startAddress)
         NSLog(endAddress)
@@ -163,25 +167,36 @@ class ViewController: UIViewController {
             NSLog("Blue")
         })*/
         NSLog("yghhzz")
-        
+        let handler: (Bool) -> Void = { comp in
+            if (comp){
+                let endLatLon = self.getEnd(endAddress: endAddress)
+                print("HEre")
+            }
+        }
         group.enter()
-        let startlatlon = getStart(startAddress: startAddress);
+        let startlatlon = getStart(startAddress: startAddress, onCompletion: handler);
         NSLog("bad")
         group.enter()
-        let endlatlon = getEnd(endAddress: endAddress);
+        //let endlatlon = getEnd(endAddress: endAddress);
         var marker = GMSMarker(position: startlatlon);
         marker.map = mapView;
-        NSLog("butt")
         //(coordinate1a, coordinate1b);
        // let endlatlon = CLLocationCoordinate2DMake(21.06282, 26.72283);
-        NSLog("Sigh")
+        //print(startlatlon.latitude)
+        //print(startlatlon.longitude)
+        //NSLog("Sigh")
+        //print(endLatLon.latitude)
+        //print(endLatLon.longitude)
+        
+        //draw(src: startlatlon, dst: endlatlon)
         //coordinate2a, coordinate2b);
         
         //draw(src: startlatlon, dst: endlatlon);
     }
     
     
-    func getStart(startAddress: String) -> CLLocationCoordinate2D{
+    
+    func getStart(startAddress: String, onCompletion: (Bool) -> (Void)) -> CLLocationCoordinate2D{
         var coordinate1a: Double = 0;
         var coordinate1b: Double = 0;
         var loc: CLLocationCoordinate2D = (CLLocationCoordinate2DMake(0, 0));
@@ -189,17 +204,21 @@ class ViewController: UIViewController {
         geocoder.geocodeAddressString(startAddress) {
             placemarks, error in
             let placemark = placemarks?.first
-            let lat = placemark!.location!.coordinate.latitude
-            let lon = placemark!.location!.coordinate.longitude
-            coordinate1a = lat;
-            coordinate1b = lon;
-            print(coordinate1a);
-            print(coordinate1b);
+            loc = CLLocationCoordinate2DMake(placemark!.location!.coordinate.latitude,
+                                             placemark!.location!.coordinate.longitude)
+            NSLog("Why does this print here?")
+            NSLog(String(loc.latitude));
+            //print(coordinate1a);
+            //print(coordinate1b);
         }
-        loc = (CLLocationCoordinate2DMake(coordinate1a, coordinate1b))
+        //loc = (CLLocationCoordinate2DMake(coordinate1a, coordinate1b))
+        NSLog("And this here?")
+        NSLog(String(loc.latitude));
+        //print(loc.longitude);
+        onCompletion(true)
         return loc;
     }
-    
+
     func getEnd(endAddress: String) -> CLLocationCoordinate2D{
         var coordinate2a: Double = 0;
         var coordinate2b: Double = 0;
@@ -212,8 +231,8 @@ class ViewController: UIViewController {
             let lon2 = placemark2!.location!.coordinate.longitude
             coordinate2a = lat2;
             coordinate2b = lon2;
-            print(coordinate2a);
-            print(coordinate2b);
+            //print(coordinate2a);
+            //print(coordinate2b);
         }
         loc2 = (CLLocationCoordinate2DMake(coordinate2a, coordinate2b))
         return loc2;
@@ -330,7 +349,7 @@ class ViewController: UIViewController {
         
         let session = URLSession.shared
         
-        let url = URL(string: "http://maps.googleapis.com/maps/api/directions/json?origin=\(source.latitude),\(source.longitude)&destination=\(destination.latitude),\(destination.longitude)&sensor=false&mode=driving")!
+        let url = URL(string: "https://maps.googleapis.com/maps/api/directions/json?origin=\(source.latitude),\(source.longitude)&destination=\(destination.latitude),\(destination.longitude)&sensor=false&mode=driving")!
         
         let task = session.dataTask(with: url, completionHandler: {
             (data, response, error) in
@@ -372,14 +391,18 @@ class ViewController: UIViewController {
     }
     
 */
-    
+    /*
+    func fetchRoute(from source: CLLocationCoordinate2D, to destination: CLLocationCoordinate2D) {
+        
+    }
+    */
     func draw(src: CLLocationCoordinate2D, dst: CLLocationCoordinate2D){
         
         let config = URLSessionConfiguration.default
         let session = URLSession(configuration: config)
         
         let url = URL(string: "https://maps.googleapis.com/maps/api/directions/json?origin=\(src.latitude),\(src.longitude)&destination=\(dst.latitude),\(dst.longitude)&sensor=false&mode=walking&key=**AIzaSyBOmX6XIBumnqSiKwjkxzCObUz60sYkgVE**")!
-        
+        NSLog("Here")
         let task = session.dataTask(with: url, completionHandler: {
             (data, response, error) in
             if error != nil {
